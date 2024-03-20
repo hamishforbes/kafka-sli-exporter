@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
+	msConfig "github.com/hamishforbes/kafka-sli-exporter/config"
+	"github.com/hamishforbes/kafka-sli-exporter/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
-	msConfig "github.com/vmware/service-level-indicator-exporter-for-kafka/config"
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/pkg/metrics"
 )
 
 type testConfig struct {

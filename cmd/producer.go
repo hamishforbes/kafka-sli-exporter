@@ -3,11 +3,11 @@ package cmd
 import (
 	"net/http"
 
+	"github.com/hamishforbes/kafka-sli-exporter/config"
+	"github.com/hamishforbes/kafka-sli-exporter/pkg/kafka"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/config"
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/pkg/kafka"
 )
 
 var producerCmd = &cobra.Command{
@@ -21,7 +21,7 @@ func init() {
 	rootCmd.AddCommand(producerCmd)
 }
 
-// startProducer create a new kafka producer an prometheus server with metrics
+// startProducer create a new kafka producer and prometheus server with metrics
 func startProducer(cmd *cobra.Command, args []string) {
 
 	cfg := config.Instance

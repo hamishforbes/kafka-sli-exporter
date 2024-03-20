@@ -5,13 +5,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/pkg/metrics"
+	"github.com/hamishforbes/kafka-sli-exporter/pkg/metrics"
 
 	"github.com/IBM/sarama"
+	"github.com/hamishforbes/kafka-sli-exporter/config"
+	"github.com/hamishforbes/kafka-sli-exporter/pkg/common"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/config"
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/pkg/common"
 )
 
 // KafkaProducer interface

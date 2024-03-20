@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/cmd"
+	"github.com/hamishforbes/kafka-sli-exporter/cmd"
 )
 
 func main() {

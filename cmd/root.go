@@ -4,20 +4,19 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/hamishforbes/kafka-sli-exporter/config"
+	"github.com/hamishforbes/kafka-sli-exporter/pkg/metrics"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/config"
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/pkg/metrics"
 )
 
 var version = "0.0.1"
 var rootCmd = &cobra.Command{
-	Use:     "kafka-slo-monitoring",
+	Use:     "kafka-sli-exporter",
 	Version: version,
-	Short:   "kafka-slo-monitoring - a simple CLI to monitor kafka clusters",
-	Long: `kafka-slo-monitoring is a CLI to monitoring kafka cluster. Adding the config we will send
-	a notification for every kafka cluster`,
+	Short:   "kafka-sli-exporter - Generate synthetic Kafka SLI metrics",
+	Long:    `kafka-sli-exporter is a CLI to artifically measure kafka cluster latency using prometheus histograms. `,
 	Run: func(cmd *cobra.Command, args []string) {
 
 	},
@@ -33,21 +32,13 @@ func Execute() {
 }
 
 func init() {
-
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "config.yaml", "config file (default is config.yaml)")
-	rootCmd.PersistentFlags().StringVarP(&userLicense, "license", "l", "", "name of license for the project")
-	rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
-	viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper"))
-	viper.SetDefault("author", "NAME HERE <EMAIL ADDRESS>")
-	viper.SetDefault("license", "vmware")
-
 	cobra.OnInitialize(initCommand)
 }
 
 func initCommand() {
 
 	createConfig()
-	// Only log the warning severity or above.
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	// LOG_LEVEL not set, let's default to info
 	lvl := config.Instance.Log.Level

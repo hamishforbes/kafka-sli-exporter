@@ -3,8 +3,8 @@ package metrics
 import (
 	"time"
 
+	"github.com/hamishforbes/kafka-sli-exporter/config"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/config"
 )
 
 const Namespace = "kafka"

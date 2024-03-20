@@ -1,4 +1,4 @@
-module github.com/vmware/service-level-indicator-exporter-for-kafka
+module github.com/hamishforbes/kafka-sli-exporter
 
 go 1.22
 

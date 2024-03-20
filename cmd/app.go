@@ -3,11 +3,11 @@ package cmd
 import (
 	"net/http"
 
+	"github.com/hamishforbes/kafka-sli-exporter/config"
+	"github.com/hamishforbes/kafka-sli-exporter/pkg/kafka"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/config"
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/pkg/kafka"
 )
 
 var appCmd = &cobra.Command{

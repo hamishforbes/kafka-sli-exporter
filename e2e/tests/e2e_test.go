@@ -1,19 +1,18 @@
 package tests
 
 import (
-	"fmt"
+	"context"
 	"testing"
 	"time"
 
 	"github.com/IBM/sarama"
+	msConfig "github.com/hamishforbes/kafka-sli-exporter/config"
+	"github.com/hamishforbes/kafka-sli-exporter/pkg/kafka"
+	"github.com/hamishforbes/kafka-sli-exporter/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	tc "github.com/testcontainers/testcontainers-go/modules/compose"
-	msConfig "github.com/vmware/service-level-indicator-exporter-for-kafka/config"
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/pkg/kafka"
-	"github.com/vmware/service-level-indicator-exporter-for-kafka/pkg/metrics"
-
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 type testConfig struct {
@@ -53,35 +52,23 @@ func TestE2E(t *testing.T) {
 			expectedClusterUp:             1,
 		},
 	}
-	kafka := startEnviron()
-	defer destroyKafka(kafka)
+	startEnviron(t)
 	for _, config := range configs {
 		testProducer(t, config)
 		testConsumer(t, config)
 	}
 }
 
-func startEnviron() *tc.LocalDockerCompose {
-	//given
-	kafka := tc.NewLocalDockerCompose(
-		[]string{"../../compose.yaml"},
-		"vdp-kafka-monitoring",
-	)
-	err := kafka.WithCommand([]string{"up", "-d"}).
-		WaitForService("broker", wait.NewLogStrategy("started")).
-		Invoke()
-	if err.Error != nil {
-		fmt.Print(err.Error)
-		return nil
-	} else {
-		time.Sleep(10 * time.Second)
-		return kafka
-	}
+func startEnviron(t *testing.T) {
+	compose, err := tc.NewDockerCompose("../../compose.yaml")
+	require.NoError(t, err, "NewDockerComposeAPI()")
+	t.Cleanup(func() {
+		require.NoError(t, compose.Down(context.Background(), tc.RemoveOrphans(true), tc.RemoveImagesLocal), "compose.Down()")
+	})
 
-}
-func destroyKafka(compose *tc.LocalDockerCompose) {
-	compose.Down()
-	time.Sleep(3 * time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	compose.Up(ctx, tc.Wait(true))
 }
 
 func testProducer(t *testing.T, config testConfig) {
