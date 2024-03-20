@@ -60,8 +60,8 @@ func NewConsumer(config config.KafkaConfig) (Consumer KafkaConsumer, err error) 
 		consumerInstance.KafkaConfig.Net.TLS.Config = tlsConfig
 	}
 
-	consumerInstance.KafkaConfig.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
-	consumerInstance.KafkaClient, err = sarama.NewConsumerGroup([]string{config.BootstrapServer}, "vdp-kafka-monitoring", consumerInstance.KafkaConfig)
+	consumerInstance.KafkaConfig.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.NewBalanceStrategyRange()}
+	consumerInstance.KafkaClient, err = sarama.NewConsumerGroup([]string{config.BootstrapServer}, "kafka-monitoring", consumerInstance.KafkaConfig)
 	if err != nil {
 		logrus.Error("Error creating the kafka consumer " + err.Error())
 	}
@@ -149,7 +149,7 @@ func (k *consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim saram
 	for {
 		select {
 		case message := <-claim.Messages():
-			logrus.Info("Message claimed: offset: " + strconv.Itoa(int(message.Offset)) + " for partition: " + strconv.Itoa(int(message.Partition)) + " in topic: " + message.Topic)
+			logrus.Debug("Message claimed: offset: " + strconv.Itoa(int(message.Offset)) + " for partition: " + strconv.Itoa(int(message.Partition)) + " in topic: " + message.Topic)
 			session.MarkMessage(message, "")
 			metrics.TotalMessageRead.WithLabelValues(k.BootstrapServer, k.Topic).Inc()
 		case <-session.Context().Done():

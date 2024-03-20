@@ -14,14 +14,14 @@ import (
 	"github.com/vmware/service-level-indicator-exporter-for-kafka/pkg/common"
 )
 
-//KafkaProducer interface
+// KafkaProducer interface
 type KafkaProducer interface {
 	Start()
 	Stop()
 	SendMessage(*sarama.ProducerMessage) error
 }
 
-//producer struct contains the kafkaProducer client and expose the config
+// producer struct contains the kafkaProducer client and expose the config
 type producer struct {
 	Topic           string
 	BootstrapServer string
@@ -51,6 +51,7 @@ func NewProducer(config config.KafkaConfig) (Producer KafkaProducer, err error) 
 	if config.ProducerConfig.MessagesSecond != 0 {
 		flushFrequency := time.Duration(1000/config.ProducerConfig.MessagesSecond) * time.Millisecond
 		producerInstance.KafkaConfig.Producer.Flush.Frequency = flushFrequency
+		producerInstance.KafkaConfig.Producer.Flush.Messages = 1
 		producerInstance.KafkaConfig.Producer.Flush.MaxMessages = 1
 	}
 
@@ -75,7 +76,7 @@ func NewProducer(config config.KafkaConfig) (Producer KafkaProducer, err error) 
 	return producerInstance, err
 }
 
-//Start function for run the synchronous producer in a loop
+// Start function for run the synchronous producer in a loop
 func (k *producer) Start() {
 	for {
 		select {
@@ -85,14 +86,11 @@ func (k *producer) Start() {
 				Partition: -1,
 				Value:     sarama.StringEncoder("example message"),
 			}
-			timer := prometheus.NewTimer(metrics.MessageSendDuration.WithLabelValues(k.BootstrapServer, k.Topic))
-			err := k.SendMessage(message)
-			if err != nil {
+			if k.SendMessage(message) != nil {
 				metrics.ClusterUp.WithLabelValues(k.BootstrapServer).Set(0)
 			} else {
 				metrics.ClusterUp.WithLabelValues(k.BootstrapServer).Set(1)
 			}
-			timer.ObserveDuration()
 		case <-k.stopchan:
 			return
 		}
@@ -106,16 +104,27 @@ func (k *producer) Stop() {
 
 }
 
-//sendMessage and increase prometheus metrics if success/fail
+// sendMessage and increase prometheus metrics if success/fail
 func (k *producer) SendMessage(msg *sarama.ProducerMessage) error {
+	timer := prometheus.NewTimer(metrics.MessageSendDuration.WithLabelValues(k.BootstrapServer, k.Topic))
 	partition, offset, err := k.KafkaClient.SendMessage(msg)
+	duration := timer.ObserveDuration()
+	sleep := time.Duration(0)
+	if k.KafkaConfig.Producer.Flush.Messages == 1 {
+		sleep = k.KafkaConfig.Producer.Flush.Frequency - duration
+	}
 	if err != nil {
 		logrus.Error("Error sending message " + err.Error())
 		metrics.ErrorTotalMessageSend.WithLabelValues(k.BootstrapServer, k.Topic).Inc()
-		return err
 	} else {
 		metrics.TotalMessageSend.WithLabelValues(k.BootstrapServer, k.Topic).Inc()
-		logrus.Info("Message was saved to partion: " + strconv.Itoa(int(partition)) + ". Message offset is: " + strconv.Itoa(int(offset)))
-		return nil
+		logrus.Debug("Message was saved to partion: "+strconv.Itoa(int(partition))+
+			". Message offset is: "+strconv.Itoa(int(offset))+
+			". Send duration was: "+duration.String(),
+			". Sleeping for: "+sleep.String(),
+		)
 	}
+	time.Sleep(sleep)
+
+	return err
 }
