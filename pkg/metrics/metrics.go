@@ -15,7 +15,7 @@ var TotalMessageSend = prometheus.NewCounterVec(
 	prometheus.CounterOpts{
 		Namespace: Namespace,
 		Subsystem: Subsystem,
-		Name:      "message_sent_count",
+		Name:      "message_send_count",
 		Help:      "Number of messages sucessfully sent to kafka",
 	},
 	[]string{"kafka_cluster", "topic"},
