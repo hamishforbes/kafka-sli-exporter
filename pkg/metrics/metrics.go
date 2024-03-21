@@ -18,7 +18,7 @@ var TotalMessageSend = prometheus.NewCounterVec(
 		Name:      "message_sent_count",
 		Help:      "Number of messages sucessfully sent to kafka",
 	},
-	[]string{"cluster", "topic"},
+	[]string{"kafka_cluster", "topic"},
 )
 
 // ErrorTotalMessageSend Producer instance will increase counter if we are not able of send a message per kafka cluster
@@ -29,7 +29,7 @@ var ErrorTotalMessageSend = prometheus.NewCounterVec(
 		Name:      "message_send_error_count",
 		Help:      "Number of messages which failed to send to kafka",
 	},
-	[]string{"cluster", "topic"},
+	[]string{"kafka_cluster", "topic"},
 )
 
 // ClusterUp Producer will set up Gauge values to 0 if cluster is unreacheable or 1 if we are able to connect to kafka cluster
@@ -40,7 +40,7 @@ var ClusterUp = prometheus.NewGaugeVec(
 		Name:      "cluster_up",
 		Help:      "Kafka clusters with errors",
 	},
-	[]string{"cluster"},
+	[]string{"kafka_cluster"},
 )
 
 // MessageSendDuration Producer summary with rate duration/reqs send
@@ -55,7 +55,7 @@ var MessageSendDuration = prometheus.NewHistogramVec(
 		NativeHistogramMaxBucketNumber:  100,
 		NativeHistogramMinResetDuration: 1 * time.Hour,
 	},
-	[]string{"cluster", "topic"},
+	[]string{"kafka_cluster", "topic"},
 )
 
 // TotalMessageRead Consumer instance will increase counter with total messages read per kafka cluster
@@ -66,7 +66,7 @@ var TotalMessageRead = prometheus.NewCounterVec(
 		Name:      "message_read_count",
 		Help:      "Number of messages read by Kafka consumer",
 	},
-	[]string{"cluster", "topic"},
+	[]string{"kafka_cluster", "topic"},
 )
 
 // TotalMessageRead Consumer instance will increase counter if it is unable of read from kafka cluster
@@ -77,7 +77,7 @@ var ErrorInRead = prometheus.NewCounterVec(
 		Name:      "message_read_error_count",
 		Help:      "Number of message read errors",
 	},
-	[]string{"cluster", "topic"},
+	[]string{"kafka_cluster", "topic"},
 )
 
 // InitMetrics function call when app start for register and init the metrics
