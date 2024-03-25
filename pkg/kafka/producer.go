@@ -55,6 +55,11 @@ func NewProducer(config config.KafkaConfig) (Producer KafkaProducer, err error) 
 		producerInstance.KafkaConfig.Producer.Flush.MaxMessages = 1
 	}
 
+	producerInstance.KafkaConfig.Producer.Retry.Max = 100
+	producerInstance.KafkaConfig.Producer.Retry.Backoff = time.Duration(250 * time.Millisecond)
+	producerInstance.KafkaConfig.Metadata.Retry.Max = 100
+	producerInstance.KafkaConfig.Metadata.Retry.Backoff = time.Duration(2 * time.Second)
+
 	// Authenticate against kafka broker using TLS if required
 	if config.Tls.Enabled {
 		tlsConfig, err := common.NewTLSConfig(config.Tls.ClientCert,
