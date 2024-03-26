@@ -37,15 +37,16 @@ var consumerInstance *consumer
 
 func NewConsumer(config config.KafkaConfig) (Consumer KafkaConsumer, err error) {
 
+	groupId := "kafka-monitoring"
+
 	consumerInstance := new(consumer)
 	consumerInstance.ready = make(chan bool)
 	consumerInstance.Topic = config.Topic
 	consumerInstance.BootstrapServer = config.BootstrapServer
 	consumerInstance.KafkaConfig = sarama.NewConfig()
 	consumerInstance.KafkaConfig.Consumer.Return.Errors = true
-	if config.ConsumerConfig.FromBeginning {
-		consumerInstance.KafkaConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
-	}
+	consumerInstance.KafkaConfig.Consumer.Offsets.Initial = sarama.OffsetNewest
+
 	consumerInstance.Ctx, consumerInstance.Cancel = context.WithCancel(context.Background())
 	if config.Tls.Enabled {
 		tlsConfig, err := common.NewTLSConfig(config.Tls.ClientCert,
@@ -61,7 +62,7 @@ func NewConsumer(config config.KafkaConfig) (Consumer KafkaConsumer, err error) 
 	}
 
 	consumerInstance.KafkaConfig.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.NewBalanceStrategyRange()}
-	consumerInstance.KafkaClient, err = sarama.NewConsumerGroup([]string{config.BootstrapServer}, "kafka-monitoring", consumerInstance.KafkaConfig)
+	consumerInstance.KafkaClient, err = sarama.NewConsumerGroup([]string{config.BootstrapServer}, groupId, consumerInstance.KafkaConfig)
 	if err != nil {
 		logrus.Error("Error creating the kafka consumer " + err.Error())
 	}
@@ -150,7 +151,9 @@ func (k *consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim saram
 		select {
 		case message := <-claim.Messages():
 			logrus.Debug("Message claimed: offset: " + strconv.Itoa(int(message.Offset)) + " for partition: " + strconv.Itoa(int(message.Partition)) + " in topic: " + message.Topic)
-			session.MarkMessage(message, "")
+			// Do not commit offsets
+			// We want to start at the newest offset everytime
+			//session.MarkMessage(message, "")
 			metrics.TotalMessageRead.WithLabelValues(k.BootstrapServer, k.Topic).Inc()
 		case <-session.Context().Done():
 			return nil
